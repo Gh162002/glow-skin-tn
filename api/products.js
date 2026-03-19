@@ -1,7 +1,9 @@
 import fs from 'fs';
 import path from 'path';
+import os from 'os';
 
-const PRODUCTS_FILE = '/tmp/products.json';
+// Utiliser un chemin compatible Windows et Linux
+const PRODUCTS_FILE = path.join(os.tmpdir(), 'products.json');
 
 // Initialiser avec les produits par défaut
 const DEFAULT_PRODUCTS = [
