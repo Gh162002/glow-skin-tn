@@ -1,0 +1,17 @@
+{
+  "name": "glow-skin-tn",
+  "version": "1.0.0",
+  "description": "Site e-commerce Glow Skin TN",
+  "type": "module",
+  "scripts": {
+    "dev": "vercel dev",
+    "build": "echo 'Build complete'",
+    "deploy": "vercel --prod"
+  },
+  "dependencies": {
+    "nodemailer": "^6.9.7"
+  },
+  "devDependencies": {
+    "@vercel/node": "^3.0.0"
+  }
+}
