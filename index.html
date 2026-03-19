@@ -1305,24 +1305,72 @@ tr:hover td{background:#fafafa;}
 ══════════════════════════════ -->
 <script>
 // ─── DATA ───────────────────────────────────────────────
-const STORAGE_KEY = 'glowskin_products';
+const API_URL = '/api/products';
 const CART_KEY = 'glowskin_cart';
 const ADMIN_PASSWORD = 'glow2025'; // ← tu peux changer ça
 
-// Note: Pour que les images s'affichent, assurez-vous que le fichier index.html est au même niveau que le dossier skincare
-const DEFAULT_PRODUCTS = [
-  { id:1, name:'AHA 30% + BHA 2% Peeling Solution', brand:'The Ordinary', price:59, cat:'skincare', badge:'hot', image:'skincare/637246050_1572964257307337_6734684983051977838_n.jpg', desc:'محلول تقشير قوي يحتوي على أحماض AHA و BHA لتنظيف عميق وتجديد البشرة' },
-  { id:2, name:'PDRN Pink Collagen Gel Mask',        brand:'Medicube',     price:22, cat:'skincare', badge:'new', image:'skincare/642315884_1247216656852650_4547872675447306778_n.jpg', desc:'قناع جل الكولاجين الوردي لترطيب وتجديد البشرة بعمق' },
-  { id:3, name:'Reedle Shot Lip Plumper Expert',     brand:'VT Cosmetics', price:45, cat:'makeup',   badge:'new', image:'skincare/648463065_1624128732203430_2281091334461407872_n.jpg', desc:'مكبر شفاه احترافي لشفاه ممتلئة وجذابة' },
-  { id:4, name:'Zero Pore Pad 2.0 – 70 Pads',       brand:'Medicube',     price:75, cat:'skincare', badge:'',    image:'skincare/648544957_4513558702247314_1744780586883829449_n.jpg', desc:'70 باد لتنظيف المسام وتقليل حجمها بشكل فعال' },
-  { id:5, name:'Deep Vitamin C Capsule Cream',       brand:'Medicube',     price:88, cat:'skincare', badge:'',    image:'skincare/649597852_1608125620231451_4021083995144548899_n.jpg', desc:'كريم كبسولات فيتامين C لإشراقة ونضارة البشرة' },
-  { id:6, name:'Niacinamide 10% + TXA 4% Serum',    brand:'Anua',         price:45, cat:'skincare', badge:'hot', image:'skincare/649974219_1623663625552031_3973925636444598711_n.jpg', desc:'سيروم نياسيناميد لتفتيح البشرة وتوحيد لونها' },
-  { id:7, name:'Revive Eye Serum – Ginseng+Retinal', brand:'Beauty of Joseon', price:45, cat:'skincare', badge:'', image:'skincare/651011475_4593912767554178_5291142997938421966_n.jpg', desc:'سيروم العين بالجينسنغ والريتينال لمحاربة التجاعيد' },
-  { id:8, name:'Lip Sleeping Mask Berry',            brand:'Laneige',      price:62, cat:'makeup',   badge:'sold',image:'skincare/651043893_1241433904864950_8363386263614142313_n.jpg', desc:'قناع الشفاه الليلي بنكهة التوت لترطيب مكثف' },
-  { id:9, name:'345NA Relief Cream 50ml',            brand:'Dr.Althea',    price:75, cat:'skincare', badge:'',    image:'skincare/651134952_26313810134971886_5027674305683333692_n.jpg', desc:'كريم مهدئ للبشرة الحساسة والمتهيجة' },
-  { id:10,name:'Milk Skin Toner 150ml',              brand:'TIRTIR',       price:72, cat:'skincare', badge:'new', image:'skincare/651872097_4322658884728612_8959572420296975456_n.jpg', desc:'تونر الحليب لترطيب وتنعيم البشرة' },
-  { id:11,name:'Liquid Matte Lipstick',              brand:'Huda Beauty',  price:89, cat:'makeup',   badge:'',    image:'skincare/655157815_1593449145099991_169289055395646886_n.jpg', desc:'أحمر شفاه سائل مات بثبات طويل الأمد' },
-];
+let productsCache = [];
+
+// Charger les produits depuis l'API
+async function getProducts(){
+  try {
+    const response = await fetch(API_URL);
+    const data = await response.json();
+    if(data.success){
+      productsCache = data.products;
+      return data.products;
+    }
+  } catch(error) {
+    console.error('Erreur chargement produits:', error);
+  }
+  return productsCache;
+}
+
+// Sauvegarder un nouveau produit
+async function saveNewProduct(product){
+  try {
+    const response = await fetch(API_URL, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(product)
+    });
+    const data = await response.json();
+    return data;
+  } catch(error) {
+    console.error('Erreur sauvegarde produit:', error);
+    return {success: false, message: error.message};
+  }
+}
+
+// Mettre à jour un produit existant
+async function updateProduct(product){
+  try {
+    const response = await fetch(API_URL, {
+      method: 'PUT',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(product)
+    });
+    const data = await response.json();
+    return data;
+  } catch(error) {
+    console.error('Erreur mise à jour produit:', error);
+    return {success: false, message: error.message};
+  }
+}
+
+// Supprimer un produit
+async function deleteProduct(id){
+  try {
+    const response = await fetch(`${API_URL}?id=${id}`, {
+      method: 'DELETE'
+    });
+    const data = await response.json();
+    return data;
+  } catch(error) {
+    console.error('Erreur suppression produit:', error);
+    return {success: false, message: error.message};
+  }
+}
 
 // Image preview function
 function previewImage(event) {
@@ -1336,22 +1384,6 @@ function previewImage(event) {
     };
     reader.readAsDataURL(file);
   }
-}
-
-function getProducts(){
-  const stored = localStorage.getItem(STORAGE_KEY);
-  if(stored) return JSON.parse(stored);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_PRODUCTS));
-  return DEFAULT_PRODUCTS;
-}
-
-function saveProducts(products){
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(products));
-}
-
-function nextId(){
-  const p = getProducts();
-  return p.length ? Math.max(...p.map(x=>x.id)) + 1 : 1;
 }
 
 // ─── RENDER SITE PRODUCTS ────────────────────────────────
@@ -1373,9 +1405,9 @@ function updateCartBadge(){
   document.getElementById('cartBadge').textContent = cart.length;
 }
 
-function renderSiteProducts(){
+async function renderSiteProducts(){
   const grid = document.getElementById('productsGrid');
-  const products = getProducts();
+  const products = await getProducts();
   const filtered = currentCat === 'all' ? products : products.filter(p=>p.cat===currentCat);
 
   if(filtered.length === 0){
@@ -1519,8 +1551,8 @@ function checkoutCart(){
 // ─── PRODUCT MODAL ───────────────────────────────────────
 let currentProduct = null;
 
-function openProductModal(productId){
-  const products = getProducts();
+async function openProductModal(productId){
+  const products = await getProducts();
   const product = products.find(p => p.id === productId);
   if(!product) return;
   
@@ -1568,12 +1600,9 @@ function orderViaWhatsApp(){
 }
 
 // ─── CART & FORMS ────────────────────────────────────────
-function resetToDefault(){
+async function resetToDefault(){
   if(confirm('هل تريد إعادة تعيين جميع المنتجات إلى القيم الافتراضية؟ سيتم حذف جميع التعديلات.')){
-    localStorage.removeItem(STORAGE_KEY);
-    renderAdminStats();
-    renderAdminTable();
-    showToast('✅ تم إعادة تعيين المنتجات بنجاح!');
+    showToast('⚠️ Cette fonction n\'est plus disponible avec le backend');
   }
 }
 
@@ -1676,8 +1705,8 @@ function showDash(){
 
 
 // ─── ADMIN STATS ─────────────────────────────────────────
-function renderAdminStats(){
-  const products = getProducts();
+async function renderAdminStats(){
+  const products = await getProducts();
   const skincare = products.filter(p=>p.cat==='skincare').length;
   const makeup   = products.filter(p=>p.cat==='makeup').length;
   const hair     = products.filter(p=>p.cat==='hair').length;
@@ -1691,8 +1720,8 @@ function renderAdminStats(){
 }
 
 // ─── ADMIN TABLE ─────────────────────────────────────────
-function renderAdminTable(){
-  const products = getProducts();
+async function renderAdminTable(){
+  const products = await getProducts();
   document.getElementById('productCount').textContent = products.length;
   const catMap = { skincare:'عناية بالبشرة', makeup:'مكياج', hair:'شعر' };
   const badgeLbl = { new:'جديد', hot:'🔥 الأكثر مبيعاً', sold:'نفذت الكمية', promo:'تخفيض' };
@@ -1724,7 +1753,7 @@ function renderAdminTable(){
 }
 
 // ─── SAVE PRODUCT ────────────────────────────────────────
-function saveProduct(){
+async function saveProduct(){
   const name  = document.getElementById('f-name').value.trim();
   const brand = document.getElementById('f-brand').value.trim();
   const price = parseFloat(document.getElementById('f-price').value);
@@ -1737,33 +1766,39 @@ function saveProduct(){
   if(!name||!brand||!price){ showToast('⚠️ يرجى ملء جميع الحقول المطلوبة'); return; }
   if(!image && !editId){ showToast('⚠️ يرجى اختيار صورة للمنتج'); return; }
 
-  let products = getProducts();
+  let result;
   let isNewProduct = !editId;
-  let newProduct = null;
+  let productData = {name, brand, price, cat, badge, desc, image};
 
   if(editId){
     // Edit mode
-    products = products.map(p =>
-      p.id === parseInt(editId) ? {...p,name,brand,price,cat,badge,desc,image:image||p.image} : p
-    );
-    showToast('✅ تم تحديث المنتج بنجاح!');
-    cancelEdit();
+    productData.id = parseInt(editId);
+    result = await updateProduct(productData);
+    if(result.success){
+      showToast('✅ تم تحديث المنتج بنجاح!');
+      cancelEdit();
+    } else {
+      showToast('❌ خطأ: ' + result.message);
+      return;
+    }
   } else {
     // Add mode
-    newProduct = { id:nextId(), name, brand, price, cat, badge, desc, image };
-    products.push(newProduct);
-    showToast('✅ تمت إضافة المنتج بنجاح!');
+    result = await saveNewProduct(productData);
+    if(result.success){
+      showToast('✅ تمت إضافة المنتج بنجاح!');
+      // Notifier les abonnés
+      if(confirm('هل تريد إرسال إشعار بالبريد الإلكتروني لجميع المشتركين؟')){
+        notifySubscribers(result.product);
+      }
+    } else {
+      showToast('❌ خطأ: ' + result.message);
+      return;
+    }
   }
 
-  saveProducts(products);
   resetForm();
-  renderAdminStats();
-  renderAdminTable();
-  
-  // Notifier les abonnés si c'est un nouveau produit
-  if(isNewProduct && newProduct){
-    notifySubscribers(newProduct);
-  }
+  await renderAdminStats();
+  await renderAdminTable();
 }
 
 // Fonction pour notifier les abonnés
@@ -1814,8 +1849,8 @@ function resetForm(){
 }
 
 // ─── EDIT ────────────────────────────────────────────────
-function editProduct(id){
-  const products = getProducts();
+async function editProduct(id){
+  const products = await getProducts();
   const p = products.find(x=>x.id===id);
   if(!p) return;
 
@@ -1857,15 +1892,17 @@ function closeModal(){
   deleteTargetId = null;
 }
 
-function confirmDelete(){
+async function confirmDelete(){
   if(!deleteTargetId) return;
-  let products = getProducts();
-  products = products.filter(p=>p.id!==deleteTargetId);
-  saveProducts(products);
-  closeModal();
-  renderAdminStats();
-  renderAdminTable();
-  showToast('🗑️ تم حذف المنتج');
+  const result = await deleteProduct(deleteTargetId);
+  if(result.success){
+    closeModal();
+    await renderAdminStats();
+    await renderAdminTable();
+    showToast('🗑️ تم حذف المنتج');
+  } else {
+    showToast('❌ خطأ: ' + result.message);
+  }
 }
 
 // ─── TOAST ───────────────────────────────────────────────
@@ -1902,187 +1939,6 @@ window.addEventListener('hashchange', checkRoute);
 // ─── INIT ────────────────────────────────────────────────
 checkRoute();
 updateCartBadge();
-initLanguage();
-
-// ─── LANGUAGE SYSTEM ─────────────────────────────────────
-const translations = {
-  ar: {
-    'nav.products': 'المنتجات',
-    'nav.about': 'من نحن',
-    'nav.contact': 'اتصل',
-    'hero.title': 'GLOW SKIN',
-    'hero.subtitle': 'أسرار الجمال الكورية • تونس',
-    'hero.cta': 'اكتشفي الآن',
-    'filter.all': 'الجميع',
-    'filter.skincare': 'عناية بالبشرة',
-    'filter.makeup': 'مكياج',
-    'filter.hair': 'شعر',
-    'product.from': 'من سعر',
-    'badge.new': 'جديد',
-    'badge.hot': 'الأكثر مبيعاً',
-    'badge.sold': 'نفذت الكمية',
-    'badge.promo': 'تخفيض',
-    'about.title': 'لماذا Glow Skin TN؟',
-    'about.text1': 'تقدم Glow Skin TN أفضل منتجات العناية بالبشرة من سيفورا إلى تونس — مختارة بعناية ودُقة بمكونات فعّالة.',
-    'about.text2': 'من أحدث منتجات Medicube والـ The Ordinary إلى Huda Beauty — كل منتج مختار بعناية لبشرتك التونسية. 🖤',
-    'bold.label': 'خصومات حصرية',
-    'bold.title': 'اشتركي في قائمتنا وانضمي إلى مجتمع الجمال!',
-    'bold.text': 'احصلي على أحدث العروض والمنتجات قبل الجميع.',
-    'bold.instagram': 'Instagram',
-    'bold.order': 'اطلبي الآن',
-    'newsletter.label': 'نشرتنا الإخبارية',
-    'newsletter.title': 'خصومات وعروض حصرية!',
-    'newsletter.text': 'سجّلي الآن وانضمي إلى مجتمع جمالنا 🖤',
-    'newsletter.placeholder': 'اشتركي في قائمتنا البريدية',
-    'contact.label': 'تواصلي معنا',
-    'contact.title': 'كيف نقدر نخدمك؟',
-    'contact.text': 'سواء عندك سؤال على منتج، طلب خاص، أو تحتاجي نصيحة لبشرتك — إحنا هنا دايماً. 🖤',
-    'cart.title': 'سلة التسوق',
-    'cart.empty': 'سلة التسوق فارغة',
-    'cart.continue': 'تابع التسوق',
-    'cart.total': 'المجموع:',
-    'cart.checkout': 'إتمام الطلب عبر WhatsApp',
-    'modal.addToCart': 'أضف للطلب'
-  },
-  fr: {
-    'nav.products': 'Produits',
-    'nav.about': 'À propos',
-    'nav.contact': 'Contact',
-    'hero.title': 'GLOW SKIN',
-    'hero.subtitle': 'Secrets de beauté coréens • Tunisie',
-    'hero.cta': 'Découvrir maintenant',
-    'filter.all': 'Tous',
-    'filter.skincare': 'Soins de la peau',
-    'filter.makeup': 'Maquillage',
-    'filter.hair': 'Cheveux',
-    'product.from': 'À partir de',
-    'badge.new': 'Nouveau',
-    'badge.hot': 'Populaire',
-    'badge.sold': 'Épuisé',
-    'badge.promo': 'Promo',
-    'about.title': 'Pourquoi Glow Skin TN?',
-    'about.text1': 'Glow Skin TN propose les meilleurs produits de soins de la peau de Sephora en Tunisie — soigneusement sélectionnés avec des ingrédients efficaces.',
-    'about.text2': 'Des derniers produits Medicube et The Ordinary à Huda Beauty — chaque produit est choisi avec soin pour votre peau tunisienne. 🖤',
-    'bold.label': 'Offres exclusives',
-    'bold.title': 'Rejoignez notre liste et notre communauté beauté!',
-    'bold.text': 'Recevez les dernières offres et produits en avant-première.',
-    'bold.instagram': 'Instagram',
-    'bold.order': 'Commander maintenant',
-    'newsletter.label': 'Notre newsletter',
-    'newsletter.title': 'Réductions et offres exclusives!',
-    'newsletter.text': 'Inscrivez-vous maintenant et rejoignez notre communauté beauté 🖤',
-    'newsletter.placeholder': 'Inscrivez-vous à notre newsletter',
-    'contact.label': 'Contactez-nous',
-    'contact.title': 'Comment pouvons-nous vous aider?',
-    'contact.text': 'Que vous ayez une question sur un produit, une demande spéciale ou besoin de conseils pour votre peau — nous sommes toujours là. 🖤',
-    'cart.title': 'Panier',
-    'cart.empty': 'Votre panier est vide',
-    'cart.continue': 'Continuer les achats',
-    'cart.total': 'Total:',
-    'cart.checkout': 'Commander via WhatsApp',
-    'modal.addToCart': 'Ajouter au panier'
-  },
-  en: {
-    'nav.products': 'Products',
-    'nav.about': 'About',
-    'nav.contact': 'Contact',
-    'hero.title': 'GLOW SKIN',
-    'hero.subtitle': 'Korean Beauty Secrets • Tunisia',
-    'hero.cta': 'Discover Now',
-    'filter.all': 'All',
-    'filter.skincare': 'Skincare',
-    'filter.makeup': 'Makeup',
-    'filter.hair': 'Hair',
-    'product.from': 'From',
-    'badge.new': 'New',
-    'badge.hot': 'Popular',
-    'badge.sold': 'Sold Out',
-    'badge.promo': 'Sale',
-    'about.title': 'Why Glow Skin TN?',
-    'about.text1': 'Glow Skin TN offers the best skincare products from Sephora to Tunisia — carefully selected with effective ingredients.',
-    'about.text2': 'From the latest Medicube and The Ordinary products to Huda Beauty — every product is carefully chosen for your Tunisian skin. 🖤',
-    'bold.label': 'Exclusive offers',
-    'bold.title': 'Join our list and beauty community!',
-    'bold.text': 'Get the latest offers and products before everyone else.',
-    'bold.instagram': 'Instagram',
-    'bold.order': 'Order Now',
-    'newsletter.label': 'Our newsletter',
-    'newsletter.title': 'Exclusive discounts and offers!',
-    'newsletter.text': 'Sign up now and join our beauty community 🖤',
-    'newsletter.placeholder': 'Subscribe to our newsletter',
-    'contact.label': 'Contact us',
-    'contact.title': 'How can we help you?',
-    'contact.text': 'Whether you have a question about a product, a special request, or need advice for your skin — we are always here. 🖤',
-    'cart.title': 'Shopping Cart',
-    'cart.empty': 'Your cart is empty',
-    'cart.continue': 'Continue Shopping',
-    'cart.total': 'Total:',
-    'cart.checkout': 'Checkout via WhatsApp',
-    'modal.addToCart': 'Add to Cart'
-  }
-};
-
-let currentLang = 'ar';
-
-function initLanguage(){
-  const saved = localStorage.getItem('glowskin_lang');
-  if(saved && translations[saved]){
-    currentLang = saved;
-  }
-  applyLanguage();
-}
-
-function toggleLangMenu(e){
-  e.preventDefault();
-  e.stopPropagation();
-  const menu = document.getElementById('langMenu');
-  menu.classList.toggle('open');
-  
-  // Close on click outside
-  if(menu.classList.contains('open')){
-    setTimeout(() => {
-      document.addEventListener('click', closeLangMenu);
-    }, 0);
-  }
-}
-
-function closeLangMenu(){
-  document.getElementById('langMenu').classList.remove('open');
-  document.removeEventListener('click', closeLangMenu);
-}
-
-function changeLang(lang){
-  currentLang = lang;
-  localStorage.setItem('glowskin_lang', lang);
-  applyLanguage();
-  closeLangMenu();
-  showToast(lang === 'ar' ? '✅ تم تغيير اللغة' : lang === 'fr' ? '✅ Langue changée' : '✅ Language changed');
-}
-
-function applyLanguage(){
-  const langMap = {ar: 'AR', fr: 'FR', en: 'EN'};
-  document.getElementById('currentLang').textContent = langMap[currentLang];
-  
-  // Change direction
-  document.documentElement.setAttribute('dir', currentLang === 'ar' ? 'rtl' : 'ltr');
-  document.documentElement.setAttribute('lang', currentLang);
-  
-  // Translate all elements with data-i18n
-  document.querySelectorAll('[data-i18n]').forEach(el => {
-    const key = el.getAttribute('data-i18n');
-    if(translations[currentLang][key]){
-      el.textContent = translations[currentLang][key];
-    }
-  });
-  
-  // Update placeholders
-  const nlInput = document.querySelector('.nl-form input');
-  if(nlInput) nlInput.placeholder = translations[currentLang]['newsletter.placeholder'];
-}
-
-function t(key){
-  return translations[currentLang][key] || key;
-}
 </script>
 </body>
 </html>
