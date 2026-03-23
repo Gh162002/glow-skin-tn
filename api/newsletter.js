@@ -1,11 +1,38 @@
 // Vercel Serverless Function pour la newsletter
 import nodemailer from 'nodemailer';
+import fs from 'fs';
+import path from 'path';
+import os from 'os';
 
 // Configuration email
 const ADMIN_EMAIL = 'Salma.mh0@icloud.com';
 
-// Simuler un stockage simple (en production, utiliser une vraie base de données)
-let subscribers = [];
+// Fichier pour stocker les abonnés
+const SUBSCRIBERS_FILE = path.join(os.tmpdir(), 'subscribers.json');
+
+// Lire les abonnés
+function getSubscribers() {
+  try {
+    if (fs.existsSync(SUBSCRIBERS_FILE)) {
+      const data = fs.readFileSync(SUBSCRIBERS_FILE, 'utf8');
+      return JSON.parse(data);
+    }
+  } catch (error) {
+    console.error('Error reading subscribers:', error);
+  }
+  return [];
+}
+
+// Sauvegarder les abonnés
+function saveSubscribers(subscribers) {
+  try {
+    fs.writeFileSync(SUBSCRIBERS_FILE, JSON.stringify(subscribers, null, 2));
+    return true;
+  } catch (error) {
+    console.error('Error saving subscribers:', error);
+    return false;
+  }
+}
 
 export default async function handler(req, res) {
   // CORS headers
@@ -24,12 +51,24 @@ export default async function handler(req, res) {
   const { action, email, product } = req.body;
 
   try {
+    // Créer le transporteur email pour Gmail
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+      }
+    });
+
     if (action === 'subscribe') {
       // Valider l'email
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!email || !emailRegex.test(email)) {
         return res.status(400).json({ success: false, message: 'Email invalide' });
       }
+
+      // Lire les abonnés
+      let subscribers = getSubscribers();
 
       // Vérifier si l'email existe déjà
       if (subscribers.includes(email)) {
@@ -38,15 +77,7 @@ export default async function handler(req, res) {
 
       // Ajouter l'abonné
       subscribers.push(email);
-
-      // Créer le transporteur email pour Gmail
-      const transporter = nodemailer.createTransport({
-        service: 'gmail',
-        auth: {
-          user: process.env.EMAIL_USER,
-          pass: process.env.EMAIL_PASS
-        }
-      });
+      saveSubscribers(subscribers);
 
       // Email de bienvenue au client
       const welcomeEmail = {
@@ -146,8 +177,7 @@ export default async function handler(req, res) {
 
       return res.status(200).json({ 
         success: true, 
-        message: 'Inscription réussie!',
-        note: 'Email configuration needed in Vercel environment variables'
+        message: 'Inscription réussie!'
       });
 
     } else if (action === 'notify_new_product') {
@@ -156,11 +186,97 @@ export default async function handler(req, res) {
         return res.status(400).json({ success: false, message: 'Produit manquant' });
       }
 
-      // En production, envoyer des emails à tous les abonnés
-      return res.status(200).json({ 
-        success: true, 
-        message: `Email envoyé à ${subscribers.length} abonnés` 
-      });
+      // Lire les abonnés
+      let subscribers = getSubscribers();
+
+      if (subscribers.length === 0) {
+        return res.status(200).json({ 
+          success: true, 
+          message: 'Aucun abonné à notifier' 
+        });
+      }
+
+      // Créer l'email de notification
+      const productEmail = {
+        from: '"Glow Skin TN" <noreply@glowskintn.com>',
+        bcc: subscribers, // Envoyer à tous les abonnés en copie cachée
+        subject: `🆕 Nouveau produit : ${product.name}`,
+        html: `
+          <html>
+          <head>
+            <style>
+              body { font-family: Arial, sans-serif; background: #f5f5f5; padding: 20px; }
+              .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+              .header { background: linear-gradient(135deg, #8b45ff, #ff69b4); padding: 40px; text-align: center; color: white; }
+              .header h1 { margin: 0; font-size: 28px; }
+              .content { padding: 40px; }
+              .product-card { background: #f9f9f9; border-radius: 15px; padding: 20px; margin: 20px 0; }
+              .product-img { width: 100%; max-width: 300px; height: 300px; object-fit: cover; border-radius: 10px; margin: 0 auto; display: block; }
+              .product-name { font-size: 22px; font-weight: bold; color: #333; margin: 15px 0 5px; }
+              .product-brand { color: #8b45ff; font-size: 16px; margin-bottom: 10px; }
+              .product-desc { color: #666; line-height: 1.6; margin: 10px 0; }
+              .product-price { font-size: 24px; color: #ff69b4; font-weight: bold; margin: 15px 0; }
+              .badge { display: inline-block; padding: 5px 15px; border-radius: 20px; font-size: 12px; font-weight: bold; margin: 10px 0; }
+              .badge-new { background: #ede9fe; color: #7c3aed; }
+              .badge-hot { background: #fee2e2; color: #dc2626; }
+              .btn { display: inline-block; background: #000; color: white; padding: 15px 40px; text-decoration: none; border-radius: 50px; margin: 20px 0; }
+              .footer { background: #f5f5f5; padding: 20px; text-align: center; color: #999; font-size: 14px; }
+            </style>
+          </head>
+          <body>
+            <div class='container'>
+              <div class='header'>
+                <h1>🆕 Nouveau Produit Disponible!</h1>
+              </div>
+              <div class='content'>
+                <div class='product-card'>
+                  ${product.image ? `<img src='${product.image}' alt='${product.name}' class='product-img'>` : ''}
+                  <div class='product-brand'>${product.brand}</div>
+                  <div class='product-name'>${product.name}</div>
+                  ${product.badge ? `<span class='badge badge-${product.badge}'>${product.badge === 'new' ? 'Nouveau' : product.badge === 'hot' ? 'Populaire' : product.badge}</span>` : ''}
+                  <div class='product-desc'>${product.desc || ''}</div>
+                  <div class='product-price'>À partir de ${product.price} DT</div>
+                </div>
+                <p style='text-align: center; color: #666;'>
+                  Découvrez ce nouveau produit dès maintenant sur notre site!
+                </p>
+                <p style='text-align: center;'>
+                  <a href='https://glow-skin-tn.vercel.app' class='btn'>Voir le produit</a>
+                </p>
+              </div>
+              <div class='footer'>
+                <p>© 2025 Glow Skin TN — Fait avec 🖤 en Tunisie</p>
+                <p style='font-size: 12px; margin-top: 10px;'>
+                  Vous recevez cet email car vous êtes abonné à notre newsletter.
+                </p>
+              </div>
+            </div>
+          </body>
+          </html>
+        `
+      };
+
+      // Envoyer l'email
+      if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+        try {
+          await transporter.sendMail(productEmail);
+          return res.status(200).json({ 
+            success: true, 
+            message: `Email envoyé à ${subscribers.length} abonné(s)` 
+          });
+        } catch (emailError) {
+          console.error('Erreur envoi email produit:', emailError);
+          return res.status(500).json({ 
+            success: false, 
+            message: 'Erreur lors de l\'envoi des emails' 
+          });
+        }
+      } else {
+        return res.status(500).json({ 
+          success: false, 
+          message: 'Configuration email manquante' 
+        });
+      }
 
     } else {
       return res.status(400).json({ success: false, message: 'Action invalide' });
