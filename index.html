@@ -1261,23 +1261,23 @@ tr:hover td{background:#fafafa;}
 <div class="cart-modal" id="cartModal" onclick="closeCart(event)">
   <div class="cart-modal-content" onclick="event.stopPropagation()">
     <div class="cart-header">
-      <h2>🛍️ سلة التسوق</h2>
+      <h2 data-i18n="cart.title">🛍️ سلة التسوق</h2>
       <button class="cart-close" onclick="closeCart()">✕</button>
     </div>
     <div class="cart-body" id="cartBody">
       <div class="cart-empty">
         <div class="empty-icon">🛍️</div>
-        <p>سلة التسوق فارغة</p>
-        <button onclick="closeCart()" class="btn-continue">تابع التسوق</button>
+        <p data-i18n="cart.empty">سلة التسوق فارغة</p>
+        <button onclick="closeCart()" class="btn-continue" data-i18n="cart.continue">تابع التسوق</button>
       </div>
     </div>
     <div class="cart-footer" id="cartFooter" style="display:none;">
       <div class="cart-total">
-        <span>المجموع:</span>
+        <span data-i18n="cart.total">المجموع:</span>
         <span id="cartTotalPrice">0 دت</span>
       </div>
       <button class="cart-checkout" onclick="checkoutCart()">
-        <span>إتمام الطلب عبر WhatsApp</span>
+        <span data-i18n="cart.checkout">إتمام الطلب عبر WhatsApp</span>
         <span>💬</span>
       </button>
     </div>
@@ -1476,12 +1476,15 @@ function renderCart(){
   const cartBody = document.getElementById('cartBody');
   const cartFooter = document.getElementById('cartFooter');
   
+  const emptyText = currentLang === 'ar' ? 'سلة التسوق فارغة' : 'Votre panier est vide';
+  const continueText = currentLang === 'ar' ? 'تابع التسوق' : 'Continuer les achats';
+  
   if(cart.length === 0){
     cartBody.innerHTML = `
       <div class="cart-empty">
         <div class="empty-icon">🛍️</div>
-        <p>سلة التسوق فارغة</p>
-        <button onclick="closeCart()" class="btn-continue">تابع التسوق</button>
+        <p>${emptyText}</p>
+        <button onclick="closeCart()" class="btn-continue">${continueText}</button>
       </div>
     `;
     cartFooter.style.display = 'none';
