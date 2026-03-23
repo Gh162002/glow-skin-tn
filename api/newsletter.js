@@ -39,11 +39,9 @@ export default async function handler(req, res) {
       // Ajouter l'abonné
       subscribers.push(email);
 
-      // Créer le transporteur email pour iCloud
+      // Créer le transporteur email pour Gmail
       const transporter = nodemailer.createTransport({
-        host: 'smtp.mail.me.com',
-        port: 587,
-        secure: false,
+        service: 'gmail',
         auth: {
           user: process.env.EMAIL_USER,
           pass: process.env.EMAIL_PASS
