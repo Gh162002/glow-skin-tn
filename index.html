@@ -1061,9 +1061,9 @@ tr:hover td{background:#fafafa;}
 
   <!-- NEWSLETTER -->
   <section class="newsletter reveal">
-    <div class="section-label">نشرتنا الإخبارية</div>
-    <h3>خصومات وعروض حصرية!</h3>
-    <p>سجّلي الآن وانضمي إلى مجتمع جمالنا 🖤</p>
+    <div class="section-label" data-i18n="newsletter.label">نشرتنا الإخبارية</div>
+    <h3 data-i18n="newsletter.title">خصومات وعروض حصرية!</h3>
+    <p data-i18n="newsletter.text">سجّلي الآن وانضمي إلى مجتمع جمالنا 🖤</p>
     <form class="nl-form" onsubmit="nlSubmit(event)">
       <input type="email" placeholder="اشتركي في قائمتنا البريدية">
       <button type="submit">✉️</button>
@@ -1073,9 +1073,9 @@ tr:hover td{background:#fafafa;}
   <!-- CONTACT -->
   <section class="contact-section reveal" id="contact">
     <div class="contact-left">
-      <div class="section-label">تواصلي معنا</div>
-      <h2>كيف نقدر نخدمك؟</h2>
-      <p>سواء عندك سؤال على منتج، طلب خاص، أو تحتاجي نصيحة لبشرتك — إحنا هنا دايماً. 🖤</p>
+      <div class="section-label" data-i18n="contact.label">تواصلي معنا</div>
+      <h2 data-i18n="contact.title">كيف نقدر نخدمك؟</h2>
+      <p data-i18n="contact.text">سواء عندك سؤال على منتج، طلب خاص، أو تحتاجي نصيحة لبشرتك — إحنا هنا دايماً. 🖤</p>
       <div class="social-row">
         <a href="https://www.instagram.com/glow_skin_tn" target="_blank" class="social-item">
           <div class="si-left"><span class="s-dot" style="background:#e1306c"></span><div><div class="s-name">Instagram</div><div class="s-handle">@glow_skin_tn</div></div></div>
@@ -1095,12 +1095,12 @@ tr:hover td{background:#fafafa;}
 
   <footer>
     <ul class="footer-links">
-      <li><a href="#">بيت</a></li>
-      <li><a href="#products">المنتجات</a></li>
-      <li><a href="#contact">يطلب</a></li>
+      <li><a href="#" data-i18n="footer.home">بيت</a></li>
+      <li><a href="#products" data-i18n="footer.products">المنتجات</a></li>
+      <li><a href="#contact" data-i18n="footer.order">يطلب</a></li>
     </ul>
    
-    <p class="footer-copy">© 2025 Glow Skin TN — صُنع بـ 🖤 في تونس</p>
+    <p class="footer-copy" data-i18n="footer.copyright">© 2025 Glow Skin TN — صُنع بـ 🖤 في تونس</p>
   </footer>
 
 </div><!-- /mainSite -->
@@ -1973,6 +1973,12 @@ const translations = {
     'contact.title': 'كيف نقدر نخدمك؟',
     'contact.text': 'سواء عندك سؤال على منتج، طلب خاص، أو تحتاجي نصيحة لبشرتك — إحنا هنا دايماً. 🖤',
     
+    // Footer
+    'footer.home': 'بيت',
+    'footer.products': 'المنتجات',
+    'footer.order': 'يطلب',
+    'footer.copyright': '© 2025 Glow Skin TN — صُنع بـ 🖤 في تونس',
+    
     // Cart
     'cart.title': 'سلة التسوق',
     'cart.empty': 'سلة التسوق فارغة',
@@ -2033,6 +2039,12 @@ const translations = {
     'contact.label': 'Contactez-nous',
     'contact.title': 'Comment pouvons-nous vous aider?',
     'contact.text': 'Que vous ayez une question sur un produit, une demande spéciale ou besoin de conseils pour votre peau — nous sommes toujours là. 🖤',
+    
+    // Footer
+    'footer.home': 'Accueil',
+    'footer.products': 'Produits',
+    'footer.order': 'Commander',
+    'footer.copyright': '© 2025 Glow Skin TN — Fait avec 🖤 en Tunisie',
     
     // Cart
     'cart.title': 'Panier',
