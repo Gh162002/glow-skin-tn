@@ -1917,19 +1917,7 @@ function checkRoute(){
 
 window.addEventListener('hashchange', checkRoute);
 
-// ─── INIT ────────────────────────────────────────────────
-checkRoute();
-updateCartBadge();
-</script>
-</body>
-</html>
-
-  .catch(err => {
-    console.error(err);
-    showToast('❌ خطأ في إرسال الإشعارات');
-  });
-}
-
+// Fonction pour notifier les abonnés (déjà définie plus haut)
 // ─── TRANSLATION SYSTEM ──────────────────────────────────
 const translations = {
   ar: {
