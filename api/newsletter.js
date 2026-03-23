@@ -84,6 +84,7 @@ export default async function handler(req, res) {
                   <li>Les cadeaux gratuits et concours</li>
                 </ul>
                 <p style='text-align: center;'>
+                  <a href='https://glow-skin-tn.vercel.app' class='btn' style='margin-right: 10px;'>Visitez notre site</a>
                   <a href='https://www.instagram.com/glow_skin_tn' class='btn'>Suivez-nous sur Instagram</a>
                 </p>
               </div>
