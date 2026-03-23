@@ -1138,7 +1138,6 @@ tr:hover td{background:#fafafa;}
     <div class="admin-header">
       <div class="a-logo">Glow <em>Skin</em> TN — Admin</div>
       <div class="a-btns">
-        <button onclick="resetToDefault()" class="a-btn-view" style="background:rgba(255,100,100,.2);border-color:rgba(255,100,100,.4);">🔄 إعادة تعيين</button>
         <a href="#" class="a-btn-view" onclick="showSite()">← عرض الموقع</a>
         <button class="a-btn-logout" onclick="logout()">خروج</button>
       </div>
@@ -1600,12 +1599,6 @@ function orderViaWhatsApp(){
 }
 
 // ─── CART & FORMS ────────────────────────────────────────
-async function resetToDefault(){
-  if(confirm('هل تريد إعادة تعيين جميع المنتجات إلى القيم الافتراضية؟ سيتم حذف جميع التعديلات.')){
-    showToast('⚠️ Cette fonction n\'est plus disponible avec le backend');
-  }
-}
-
 function nlSubmit(e){
   e.preventDefault();
   const emailInput = e.target.querySelector('input[type="email"]');
