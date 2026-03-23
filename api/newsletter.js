@@ -230,7 +230,7 @@ export default async function handler(req, res) {
               </div>
               <div class='content'>
                 <div class='product-card'>
-                  ${product.image ? `<img src='${product.image}' alt='${product.name}' class='product-img'>` : ''}
+                  ${product.image && !product.image.startsWith('data:') ? `<img src='https://glow-skin-tn.vercel.app/${product.image}' alt='${product.name}' class='product-img'>` : `<div style='width: 100%; max-width: 300px; height: 300px; background: linear-gradient(135deg, #8b45ff, #ff69b4); border-radius: 10px; margin: 0 auto; display: flex; align-items: center; justify-content: center; color: white; font-size: 48px;'>✨</div>`}
                   <div class='product-brand'>${product.brand}</div>
                   <div class='product-name'>${product.name}</div>
                   ${product.badge ? `<span class='badge badge-${product.badge}'>${product.badge === 'new' ? 'Nouveau' : product.badge === 'hot' ? 'Populaire' : product.badge}</span>` : ''}
