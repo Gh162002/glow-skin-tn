@@ -39,12 +39,14 @@ export default async function handler(req, res) {
       // Ajouter l'abonné
       subscribers.push(email);
 
-      // Créer le transporteur email (utiliser un service SMTP)
+      // Créer le transporteur email pour iCloud
       const transporter = nodemailer.createTransport({
-        service: 'gmail', // ou autre service
+        host: 'smtp.mail.me.com',
+        port: 587,
+        secure: false,
         auth: {
-          user: process.env.EMAIL_USER, // À configurer dans Vercel
-          pass: process.env.EMAIL_PASS  // À configurer dans Vercel
+          user: process.env.EMAIL_USER,
+          pass: process.env.EMAIL_PASS
         }
       });
 
