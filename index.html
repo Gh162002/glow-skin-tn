@@ -1086,7 +1086,7 @@ tr:hover td{background:#fafafa;}
           <span class="s-arr">↗</span>
         </a>
         <a href="https://wa.me/21626207466" target="_blank" class="social-item">
-          <div class="si-left"><span class="s-dot" style="background:#25D366"></span><div><div class="s-name">WhatsApp</div><div class="s-handle">راسلينا مباشرة</div></div></div>
+          <div class="si-left"><span class="s-dot" style="background:#25D366"></span><div><div class="s-name">WhatsApp</div><div class="s-handle" data-i18n="contact.whatsapp">راسلينا مباشرة</div></div></div>
           <span class="s-arr">↗</span>
         </a>
       </div>
@@ -1244,13 +1244,13 @@ tr:hover td{background:#fafafa;}
         <p class="pm-desc" id="pm-desc"></p>
       </div>
       <div>
-        <div class="pm-price"><span>من سعر</span> <span id="pm-price"></span> دت</div>
+        <div class="pm-price"><span data-i18n="product.from">من سعر</span> <span id="pm-price"></span> <span id="pm-currency">دت</span></div>
         <div class="pm-actions">
           <button class="pm-btn-cart" onclick="addToCartFromModal()">
             <span>🛍️</span>
-            <span>أضف للطلب</span>
+            <span data-i18n="modal.addToCart">أضف للطلب</span>
           </button>
-          <button class="pm-btn-whatsapp" onclick="orderViaWhatsApp()" title="اطلب عبر واتساب">💬</button>
+          <button class="pm-btn-whatsapp" onclick="orderViaWhatsApp()" data-i18n="modal.orderWhatsApp" title="اطلب عبر واتساب">💬</button>
         </div>
       </div>
     </div>
@@ -1398,7 +1398,8 @@ async function renderSiteProducts(){
   const filtered = currentCat === 'all' ? products : products.filter(p=>p.cat===currentCat);
 
   if(filtered.length === 0){
-    grid.innerHTML = `<div class="empty-products"><div class="empty-icon">🛍️</div><p>لا توجد منتجات في هذه الفئة حالياً</p></div>`;
+    const emptyMsg = translations[currentLang]['empty.products'];
+    grid.innerHTML = `<div class="empty-products"><div class="empty-icon">🛍️</div><p>${emptyMsg}</p></div>`;
     return;
   }
 
@@ -1444,7 +1445,7 @@ function addToCartAnim(){
   // Vérifier si le produit existe déjà
   const exists = cart.find(item => item.id === currentProduct.id);
   if(exists){
-    showToast('⚠️ المنتج موجود بالفعل في السلة');
+    showToast(t('toast.productExists'));
     return;
   }
   
@@ -1454,7 +1455,7 @@ function addToCartAnim(){
   const badge = document.getElementById('cartBadge');
   badge.style.transform = 'scale(1.5)';
   setTimeout(()=>badge.style.transform='', 300);
-  showToast('✅ تمت الإضافة للسلة!');
+  showToast(t('toast.addedToCart'));
 }
 
 // ─── CART MODAL ──────────────────────────────────────────
@@ -1476,15 +1477,12 @@ function renderCart(){
   const cartBody = document.getElementById('cartBody');
   const cartFooter = document.getElementById('cartFooter');
   
-  const emptyText = currentLang === 'ar' ? 'سلة التسوق فارغة' : 'Votre panier est vide';
-  const continueText = currentLang === 'ar' ? 'تابع التسوق' : 'Continuer les achats';
-  
   if(cart.length === 0){
     cartBody.innerHTML = `
       <div class="cart-empty">
         <div class="empty-icon">🛍️</div>
-        <p>${emptyText}</p>
-        <button onclick="closeCart()" class="btn-continue">${continueText}</button>
+        <p>${t('cart.empty')}</p>
+        <button onclick="closeCart()" class="btn-continue">${t('cart.continue')}</button>
       </div>
     `;
     cartFooter.style.display = 'none';
@@ -1505,7 +1503,7 @@ function renderCart(){
         </div>
         <div class="cart-item-price">${item.price} ${getCurrency()}</div>
       </div>
-      <button class="cart-item-remove" onclick="removeFromCart(${index})" title="حذف">🗑️</button>
+      <button class="cart-item-remove" onclick="removeFromCart(${index})" title="${t('cart.remove')}">🗑️</button>
     </div>
   `).join('');
   
@@ -1518,21 +1516,21 @@ function removeFromCart(index){
   cart.splice(index, 1);
   saveCart(cart);
   renderCart();
-  showToast('🗑️ تم حذف المنتج من السلة');
+  showToast(t('toast.removedFromCart'));
 }
 
 function checkoutCart(){
   if(cart.length === 0) return;
   
-  let message = 'مرحباً! أريد طلب المنتجات التالية:\n\n';
+  let message = t('whatsapp.cartIntro') + '\n\n';
   let total = 0;
   
   cart.forEach((item, i) => {
-    message += `${i+1}. ${item.brand} - ${item.name}\n   السعر: ${item.price} دت\n\n`;
+    message += `${i+1}. ${item.brand} - ${item.name}\n   ${t('whatsapp.price')} ${item.price} ${getCurrency()}\n\n`;
     total += item.price;
   });
   
-  message += `المجموع الكلي: ${total} دت`;
+  message += `${t('whatsapp.total')} ${total} ${getCurrency()}`;
   
   const whatsappUrl = `https://wa.me/21626207466?text=${encodeURIComponent(message)}`;
   window.open(whatsappUrl, '_blank');
@@ -1549,17 +1547,16 @@ async function openProductModal(productId){
   currentProduct = product;
   
   const badgeMap = { new:'badge-new', hot:'badge-hot', sold:'badge-sold', promo:'badge-promo' };
-  const badgeLbl = { new:'جديد 🆕', hot:'الأكثر مبيعاً 🔥', sold:'نفذت الكمية', promo:'تخفيض 🏷️' };
   
   document.getElementById('pm-img').src = product.image || '';
   document.getElementById('pm-brand').textContent = product.brand;
   document.getElementById('pm-title').textContent = product.name;
-  document.getElementById('pm-desc').textContent = product.desc || 'منتج عالي الجودة من أفضل العلامات التجارية العالمية';
+  document.getElementById('pm-desc').textContent = product.desc || t('modal.defaultDesc');
   document.getElementById('pm-price').textContent = product.price;
   
   const badgeEl = document.getElementById('pm-badge');
   if(product.badge){
-    badgeEl.textContent = badgeLbl[product.badge] || product.badge;
+    badgeEl.textContent = getBadgeLabel(product.badge);
     badgeEl.className = 'pm-badge ' + (badgeMap[product.badge] || '');
     badgeEl.style.display = 'inline-block';
   } else {
@@ -1584,7 +1581,7 @@ function addToCartFromModal(){
 
 function orderViaWhatsApp(){
   if(!currentProduct) return;
-  const message = `مرحباً! أريد طلب:\n${currentProduct.brand} - ${currentProduct.name}\nالسعر: ${currentProduct.price} دت`;
+  const message = `${t('whatsapp.singleProduct')}\n${currentProduct.brand} - ${currentProduct.name}\n${t('whatsapp.price')} ${currentProduct.price} ${getCurrency()}`;
   const whatsappUrl = `https://wa.me/21626207466?text=${encodeURIComponent(message)}`;
   window.open(whatsappUrl, '_blank');
 }
@@ -1597,7 +1594,7 @@ function nlSubmit(e){
   const btn = e.target.querySelector('button');
   
   if(!email){
-    showToast('⚠️ يرجى إدخال البريد الإلكتروني');
+    showToast(t('toast.emailRequired'));
     return;
   }
   
@@ -1614,21 +1611,21 @@ function nlSubmit(e){
   .then(data => {
     if(data.success){
       btn.textContent='✓';
-      showToast('✅ تم الاشتراك بنجاح! تحقق من بريدك الإلكتروني');
+      showToast(t('toast.subscribeSuccess'));
       setTimeout(()=>{
         btn.textContent='✉️';
         btn.disabled = false;
         e.target.reset();
       }, 2500);
     } else {
-      showToast('⚠️ ' + (data.message || 'حدث خطأ'));
+      showToast('⚠️ ' + (data.message || t('toast.error')));
       btn.textContent='✉️';
       btn.disabled = false;
     }
   })
   .catch(err => {
     console.error(err);
-    showToast('❌ خطأ في الاتصال');
+    showToast(t('toast.connectionError'));
     btn.textContent='✉️';
     btn.disabled = false;
   });
@@ -1944,10 +1941,10 @@ const translations = {
     'product.from': 'من سعر',
     
     // Badges
-    'badge.new': 'جديد',
-    'badge.hot': 'الأكثر مبيعاً',
+    'badge.new': 'جديد 🆕',
+    'badge.hot': 'الأكثر مبيعاً 🔥',
     'badge.sold': 'نفذت الكمية',
-    'badge.promo': 'تخفيض',
+    'badge.promo': 'تخفيض 🏷️',
     
     // About
     'about.label': 'تواصلي معنا',
@@ -1972,6 +1969,7 @@ const translations = {
     'contact.label': 'تواصلي معنا',
     'contact.title': 'كيف نقدر نخدمك؟',
     'contact.text': 'سواء عندك سؤال على منتج، طلب خاص، أو تحتاجي نصيحة لبشرتك — إحنا هنا دايماً. 🖤',
+    'contact.whatsapp': 'راسلينا مباشرة',
     
     // Footer
     'footer.home': 'بيت',
@@ -1985,10 +1983,31 @@ const translations = {
     'cart.continue': 'تابع التسوق',
     'cart.total': 'المجموع:',
     'cart.checkout': 'إتمام الطلب عبر WhatsApp',
+    'cart.remove': 'حذف',
     
     // Modal
     'modal.addToCart': 'أضف للطلب',
-    'modal.orderWhatsApp': 'اطلب عبر WhatsApp'
+    'modal.orderWhatsApp': 'اطلب عبر WhatsApp',
+    'modal.defaultDesc': 'منتج عالي الجودة من أفضل العلامات التجارية العالمية',
+    
+    // Empty states
+    'empty.products': 'لا توجد منتجات في هذه الفئة حالياً',
+    
+    // Toast messages
+    'toast.productExists': '⚠️ المنتج موجود بالفعل في السلة',
+    'toast.addedToCart': '✅ تمت الإضافة للسلة!',
+    'toast.removedFromCart': '🗑️ تم حذف المنتج من السلة',
+    'toast.emailRequired': '⚠️ يرجى إدخال البريد الإلكتروني',
+    'toast.subscribeSuccess': '✅ تم الاشتراك بنجاح! تحقق من بريدك الإلكتروني',
+    'toast.error': '⚠️ حدث خطأ',
+    'toast.connectionError': '❌ خطأ في الاتصال',
+    'toast.langChanged': '✅ تم تغيير اللغة',
+    
+    // WhatsApp messages
+    'whatsapp.cartIntro': 'مرحباً! أريد طلب المنتجات التالية:',
+    'whatsapp.total': 'المجموع الكلي:',
+    'whatsapp.price': 'السعر:',
+    'whatsapp.singleProduct': 'مرحباً! أريد طلب:'
   },
   fr: {
     // Navigation
@@ -2011,10 +2030,10 @@ const translations = {
     'product.from': 'À partir de',
     
     // Badges
-    'badge.new': 'Nouveau',
-    'badge.hot': 'Populaire',
+    'badge.new': 'Nouveau 🆕',
+    'badge.hot': 'Populaire 🔥',
     'badge.sold': 'Épuisé',
-    'badge.promo': 'Promo',
+    'badge.promo': 'Promo 🏷️',
     
     // About
     'about.label': 'Contactez-nous',
@@ -2039,6 +2058,7 @@ const translations = {
     'contact.label': 'Contactez-nous',
     'contact.title': 'Comment pouvons-nous vous aider?',
     'contact.text': 'Que vous ayez une question sur un produit, une demande spéciale ou besoin de conseils pour votre peau — nous sommes toujours là. 🖤',
+    'contact.whatsapp': 'Contactez-nous directement',
     
     // Footer
     'footer.home': 'Accueil',
@@ -2052,10 +2072,31 @@ const translations = {
     'cart.continue': 'Continuer les achats',
     'cart.total': 'Total:',
     'cart.checkout': 'Commander via WhatsApp',
+    'cart.remove': 'Supprimer',
     
     // Modal
     'modal.addToCart': 'Ajouter au panier',
-    'modal.orderWhatsApp': 'Commander via WhatsApp'
+    'modal.orderWhatsApp': 'Commander via WhatsApp',
+    'modal.defaultDesc': 'Produit de haute qualité des meilleures marques internationales',
+    
+    // Empty states
+    'empty.products': 'Aucun produit dans cette catégorie pour le moment',
+    
+    // Toast messages
+    'toast.productExists': '⚠️ Le produit est déjà dans le panier',
+    'toast.addedToCart': '✅ Ajouté au panier!',
+    'toast.removedFromCart': '🗑️ Produit retiré du panier',
+    'toast.emailRequired': '⚠️ Veuillez entrer votre email',
+    'toast.subscribeSuccess': '✅ Inscription réussie! Vérifiez votre email',
+    'toast.error': '⚠️ Une erreur est survenue',
+    'toast.connectionError': '❌ Erreur de connexion',
+    'toast.langChanged': '✅ Langue changée',
+    
+    // WhatsApp messages
+    'whatsapp.cartIntro': 'Bonjour! Je voudrais commander les produits suivants:',
+    'whatsapp.total': 'Total:',
+    'whatsapp.price': 'Prix:',
+    'whatsapp.singleProduct': 'Bonjour! Je voudrais commander:'
   }
 };
 
@@ -2064,8 +2105,18 @@ let currentLang = 'ar';
 // Helper function to get translated badge labels
 function getBadgeLabel(badge) {
   const badges = {
-    ar: { new:'جديد', hot:'الأكثر مبيعاً', sold:'نفذت الكمية', promo:'تخفيض' },
-    fr: { new:'Nouveau', hot:'Populaire', sold:'Épuisé', promo:'Promo' }
+    ar: { 
+      new:'جديد 🆕', 
+      hot:'الأكثر مبيعاً 🔥', 
+      sold:'نفذت الكمية', 
+      promo:'تخفيض 🏷️' 
+    },
+    fr: { 
+      new:'Nouveau 🆕', 
+      hot:'Populaire 🔥', 
+      sold:'Épuisé', 
+      promo:'Promo 🏷️' 
+    }
   };
   return badges[currentLang][badge] || '';
 }
@@ -2073,6 +2124,11 @@ function getBadgeLabel(badge) {
 // Helper function to get currency
 function getCurrency() {
   return currentLang === 'ar' ? 'دت' : 'DT';
+}
+
+// Helper function to translate messages
+function t(key) {
+  return translations[currentLang][key] || key;
 }
 
 function initLanguage(){
@@ -2106,7 +2162,7 @@ function changeLang(lang){
   localStorage.setItem('glowskin_lang', lang);
   applyLanguage();
   closeLangMenu();
-  showToast(lang === 'ar' ? '✅ تم تغيير اللغة' : '✅ Langue changée');
+  showToast(t('toast.langChanged'));
 }
 
 function applyLanguage(){
@@ -2128,6 +2184,10 @@ function applyLanguage(){
   // Update placeholders
   const nlInput = document.querySelector('.nl-form input');
   if(nlInput) nlInput.placeholder = translations[currentLang]['newsletter.placeholder'];
+  
+  // Update currency in product modal if visible
+  const pmCurrency = document.getElementById('pm-currency');
+  if(pmCurrency) pmCurrency.textContent = getCurrency();
   
   // Re-render products to update badges and prices
   if(document.getElementById('productsGrid')){
