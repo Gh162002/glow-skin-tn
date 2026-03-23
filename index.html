@@ -1417,7 +1417,7 @@ async function renderSiteProducts(){
       <div class="product-brand">${p.brand}</div>
       <div class="product-name">${p.name}</div>
       ${descHTML}
-      <div class="product-price">${priceLabel} <strong>${p.price} دت</strong></div>
+      <div class="product-price">${priceLabel} <strong>${p.price} ${getCurrency()}</strong></div>
     </div>`;
   }).join('');
 
@@ -1503,13 +1503,13 @@ function renderCart(){
           <div class="cart-item-brand">${item.brand}</div>
           <div class="cart-item-name">${item.name}</div>
         </div>
-        <div class="cart-item-price">${item.price} دت</div>
+        <div class="cart-item-price">${item.price} ${getCurrency()}</div>
       </div>
       <button class="cart-item-remove" onclick="removeFromCart(${index})" title="حذف">🗑️</button>
     </div>
   `).join('');
   
-  document.getElementById('cartTotalPrice').textContent = total + ' دت';
+  document.getElementById('cartTotalPrice').textContent = total + ' ' + getCurrency();
   cartFooter.style.display = 'block';
 }
 
@@ -2056,6 +2056,11 @@ function getBadgeLabel(badge) {
     fr: { new:'Nouveau', hot:'Populaire', sold:'Épuisé', promo:'Promo' }
   };
   return badges[currentLang][badge] || '';
+}
+
+// Helper function to get currency
+function getCurrency() {
+  return currentLang === 'ar' ? 'دت' : 'DT';
 }
 
 function initLanguage(){
