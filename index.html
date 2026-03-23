@@ -975,7 +975,7 @@ tr:hover td{background:#fafafa;}
     <ul class="nav-links">
       <li><a href="#products" data-i18n="nav.products">المنتجات</a></li>
       <li><a href="#about" data-i18n="nav.about">من نحن</a></li>
-      <li><a href="#contact" data-i18n="nav.contact">يطلب</a></li>
+      <li><a href="#contact" data-i18n="nav.contact">اتصل</a></li>
     </ul>
     <div class="nav-icons">
       <div class="language-selector">
@@ -988,7 +988,6 @@ tr:hover td{background:#fafafa;}
         <div class="lang-menu" id="langMenu">
           <button onclick="changeLang('ar')">العربية</button>
           <button onclick="changeLang('fr')">Français</button>
-          <button onclick="changeLang('en')">English</button>
         </div>
       </div>
       <a href="#" class="nav-icon" style="position:relative;" onclick="openCart(event)">
@@ -1921,6 +1920,203 @@ window.addEventListener('hashchange', checkRoute);
 // ─── INIT ────────────────────────────────────────────────
 checkRoute();
 updateCartBadge();
+</script>
+</body>
+</html>
+
+  .catch(err => {
+    console.error(err);
+    showToast('❌ خطأ في إرسال الإشعارات');
+  });
+}
+
+// ─── TRANSLATION SYSTEM ──────────────────────────────────
+const translations = {
+  ar: {
+    // Navigation
+    'nav.products': 'المنتجات',
+    'nav.about': 'من نحن',
+    'nav.contact': 'اتصل',
+    
+    // Hero
+    'hero.title': 'GLOW SKIN',
+    'hero.subtitle': 'أسرار الجمال الكورية • تونس',
+    'hero.cta': 'اكتشفي الآن',
+    
+    // Filters
+    'filter.all': 'الجميع',
+    'filter.skincare': 'عناية بالبشرة',
+    'filter.makeup': 'مكياج',
+    'filter.hair': 'شعر',
+    
+    // Product
+    'product.from': 'من سعر',
+    
+    // Badges
+    'badge.new': 'جديد',
+    'badge.hot': 'الأكثر مبيعاً',
+    'badge.sold': 'نفذت الكمية',
+    'badge.promo': 'تخفيض',
+    
+    // About
+    'about.label': 'تواصلي معنا',
+    'about.title': 'لماذا Glow Skin TN؟',
+    'about.text1': 'تقدم Glow Skin TN أفضل منتجات العناية بالبشرة من سيفورا إلى تونس — مختارة بعناية ودُقة بمكونات فعّالة.',
+    'about.text2': 'من أحدث منتجات Medicube والـ The Ordinary إلى Huda Beauty — كل منتج مختار بعناية لبشرتك التونسية. 🖤',
+    
+    // Bold
+    'bold.label': 'خصومات حصرية',
+    'bold.title': 'اشتركي في قائمتنا وانضمي إلى مجتمع الجمال!',
+    'bold.text': 'احصلي على أحدث العروض والمنتجات قبل الجميع.',
+    'bold.instagram': 'Instagram',
+    'bold.order': 'اطلبي الآن',
+    
+    // Newsletter
+    'newsletter.label': 'نشرتنا الإخبارية',
+    'newsletter.title': 'خصومات وعروض حصرية!',
+    'newsletter.text': 'سجّلي الآن وانضمي إلى مجتمع جمالنا 🖤',
+    'newsletter.placeholder': 'اشتركي في قائمتنا البريدية',
+    
+    // Contact
+    'contact.label': 'تواصلي معنا',
+    'contact.title': 'كيف نقدر نخدمك؟',
+    'contact.text': 'سواء عندك سؤال على منتج، طلب خاص، أو تحتاجي نصيحة لبشرتك — إحنا هنا دايماً. 🖤',
+    
+    // Cart
+    'cart.title': 'سلة التسوق',
+    'cart.empty': 'سلة التسوق فارغة',
+    'cart.continue': 'تابع التسوق',
+    'cart.total': 'المجموع:',
+    'cart.checkout': 'إتمام الطلب عبر WhatsApp',
+    
+    // Modal
+    'modal.addToCart': 'أضف للطلب',
+    'modal.orderWhatsApp': 'اطلب عبر WhatsApp'
+  },
+  fr: {
+    // Navigation
+    'nav.products': 'Produits',
+    'nav.about': 'À propos',
+    'nav.contact': 'Contact',
+    
+    // Hero
+    'hero.title': 'GLOW SKIN',
+    'hero.subtitle': 'Secrets de beauté coréens • Tunisie',
+    'hero.cta': 'Découvrir maintenant',
+    
+    // Filters
+    'filter.all': 'Tous',
+    'filter.skincare': 'Soins de la peau',
+    'filter.makeup': 'Maquillage',
+    'filter.hair': 'Cheveux',
+    
+    // Product
+    'product.from': 'À partir de',
+    
+    // Badges
+    'badge.new': 'Nouveau',
+    'badge.hot': 'Populaire',
+    'badge.sold': 'Épuisé',
+    'badge.promo': 'Promo',
+    
+    // About
+    'about.label': 'Contactez-nous',
+    'about.title': 'Pourquoi Glow Skin TN?',
+    'about.text1': 'Glow Skin TN propose les meilleurs produits de soins de la peau de Sephora en Tunisie — soigneusement sélectionnés avec des ingrédients efficaces.',
+    'about.text2': 'Des derniers produits Medicube et The Ordinary à Huda Beauty — chaque produit est choisi avec soin pour votre peau tunisienne. 🖤',
+    
+    // Bold
+    'bold.label': 'Offres exclusives',
+    'bold.title': 'Rejoignez notre liste et notre communauté beauté!',
+    'bold.text': 'Recevez les dernières offres et produits en avant-première.',
+    'bold.instagram': 'Instagram',
+    'bold.order': 'Commander maintenant',
+    
+    // Newsletter
+    'newsletter.label': 'Notre newsletter',
+    'newsletter.title': 'Réductions et offres exclusives!',
+    'newsletter.text': 'Inscrivez-vous maintenant et rejoignez notre communauté beauté 🖤',
+    'newsletter.placeholder': 'Inscrivez-vous à notre newsletter',
+    
+    // Contact
+    'contact.label': 'Contactez-nous',
+    'contact.title': 'Comment pouvons-nous vous aider?',
+    'contact.text': 'Que vous ayez une question sur un produit, une demande spéciale ou besoin de conseils pour votre peau — nous sommes toujours là. 🖤',
+    
+    // Cart
+    'cart.title': 'Panier',
+    'cart.empty': 'Votre panier est vide',
+    'cart.continue': 'Continuer les achats',
+    'cart.total': 'Total:',
+    'cart.checkout': 'Commander via WhatsApp',
+    
+    // Modal
+    'modal.addToCart': 'Ajouter au panier',
+    'modal.orderWhatsApp': 'Commander via WhatsApp'
+  }
+};
+
+let currentLang = 'ar';
+
+function initLanguage(){
+  const saved = localStorage.getItem('glowskin_lang');
+  if(saved && translations[saved]){
+    currentLang = saved;
+  }
+  applyLanguage();
+}
+
+function toggleLangMenu(e){
+  e.preventDefault();
+  e.stopPropagation();
+  const menu = document.getElementById('langMenu');
+  menu.classList.toggle('open');
+  
+  if(menu.classList.contains('open')){
+    setTimeout(() => {
+      document.addEventListener('click', closeLangMenu);
+    }, 0);
+  }
+}
+
+function closeLangMenu(){
+  document.getElementById('langMenu').classList.remove('open');
+  document.removeEventListener('click', closeLangMenu);
+}
+
+function changeLang(lang){
+  currentLang = lang;
+  localStorage.setItem('glowskin_lang', lang);
+  applyLanguage();
+  closeLangMenu();
+  showToast(lang === 'ar' ? '✅ تم تغيير اللغة' : '✅ Langue changée');
+}
+
+function applyLanguage(){
+  const langMap = {ar: 'AR', fr: 'FR'};
+  document.getElementById('currentLang').textContent = langMap[currentLang];
+  
+  // Change direction
+  document.documentElement.setAttribute('dir', currentLang === 'ar' ? 'rtl' : 'ltr');
+  document.documentElement.setAttribute('lang', currentLang);
+  
+  // Translate all elements with data-i18n
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if(translations[currentLang][key]){
+      el.textContent = translations[currentLang][key];
+    }
+  });
+  
+  // Update placeholders
+  const nlInput = document.querySelector('.nl-form input');
+  if(nlInput) nlInput.placeholder = translations[currentLang]['newsletter.placeholder'];
+}
+
+// ─── INIT ────────────────────────────────────────────────
+checkRoute();
+updateCartBadge();
+initLanguage();
 </script>
 </body>
 </html>
