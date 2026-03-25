@@ -9,7 +9,8 @@
   },
   "dependencies": {
     "nodemailer": "^6.9.7",
-    "formidable": "^3.5.1"
+    "formidable": "^3.5.1",
+    "@vercel/kv": "^1.0.1"
   },
   "devDependencies": {
     "@vercel/node": "^3.0.0"

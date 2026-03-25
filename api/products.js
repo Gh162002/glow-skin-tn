@@ -1,11 +1,8 @@
-import fs from 'fs';
-import path from 'path';
-import os from 'os';
+import { kv } from '@vercel/kv';
 
-// Utiliser un chemin compatible Windows et Linux
-const PRODUCTS_FILE = path.join(os.tmpdir(), 'products.json');
+const PRODUCTS_KEY = 'glow_skin_products';
 
-// Initialiser avec les produits par défaut
+// Produits par défaut
 const DEFAULT_PRODUCTS = [
   { id:1, name:'AHA 30% + BHA 2% Peeling Solution', brand:'The Ordinary', price:59, cat:'skincare', badge:'hot', image:'skincare/637246050_1572964257307337_6734684983051977838_n.jpg', desc:'Solution de peeling puissante avec acides AHA et BHA pour un nettoyage en profondeur' },
   { id:2, name:'PDRN Pink Collagen Gel Mask', brand:'Medicube', price:22, cat:'skincare', badge:'new', image:'skincare/642315884_1247216656852650_4547872675447306778_n.jpg', desc:'Masque gel au collagène rose pour hydrater et régénérer la peau en profondeur' },
@@ -20,26 +17,29 @@ const DEFAULT_PRODUCTS = [
   { id:11, name:'Liquid Matte Lipstick', brand:'Huda Beauty', price:89, cat:'makeup', badge:'', image:'skincare/655157815_1593449145099991_169289055395646886_n.jpg', desc:'Rouge à lèvres liquide mat longue tenue' },
 ];
 
-// Lire les produits
-function getProducts() {
+// Récupérer les produits depuis KV
+async function getProducts() {
   try {
-    if (fs.existsSync(PRODUCTS_FILE)) {
-      const data = fs.readFileSync(PRODUCTS_FILE, 'utf8');
-      return JSON.parse(data);
+    const products = await kv.get(PRODUCTS_KEY);
+    if (products && Array.isArray(products)) {
+      return products;
     }
+    // Si pas de produits en KV, initialiser avec les produits par défaut
+    await kv.set(PRODUCTS_KEY, DEFAULT_PRODUCTS);
+    return DEFAULT_PRODUCTS;
   } catch (error) {
-    console.error('Error reading products:', error);
+    console.error('Error reading products from KV:', error);
+    return DEFAULT_PRODUCTS;
   }
-  return DEFAULT_PRODUCTS;
 }
 
-// Sauvegarder les produits
-function saveProducts(products) {
+// Sauvegarder les produits dans KV
+async function saveProducts(products) {
   try {
-    fs.writeFileSync(PRODUCTS_FILE, JSON.stringify(products, null, 2));
+    await kv.set(PRODUCTS_KEY, products);
     return true;
   } catch (error) {
-    console.error('Error saving products:', error);
+    console.error('Error saving products to KV:', error);
     return false;
   }
 }
@@ -55,7 +55,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const products = getProducts();
+    const products = await getProducts();
 
     // GET - Récupérer tous les produits
     if (req.method === 'GET') {
@@ -68,7 +68,7 @@ export default async function handler(req, res) {
       newProduct.id = products.length > 0 ? Math.max(...products.map(p => p.id)) + 1 : 1;
       products.push(newProduct);
       
-      if (saveProducts(products)) {
+      if (await saveProducts(products)) {
         return res.status(201).json({ success: true, product: newProduct });
       } else {
         return res.status(500).json({ success: false, message: 'Erreur lors de la sauvegarde' });
@@ -86,7 +86,7 @@ export default async function handler(req, res) {
 
       products[index] = { ...products[index], ...updates };
       
-      if (saveProducts(products)) {
+      if (await saveProducts(products)) {
         return res.status(200).json({ success: true, product: products[index] });
       } else {
         return res.status(500).json({ success: false, message: 'Erreur lors de la sauvegarde' });
@@ -104,7 +104,7 @@ export default async function handler(req, res) {
 
       products.splice(index, 1);
       
-      if (saveProducts(products)) {
+      if (await saveProducts(products)) {
         return res.status(200).json({ success: true, message: 'Produit supprimé' });
       } else {
         return res.status(500).json({ success: false, message: 'Erreur lors de la sauvegarde' });
