@@ -1,10 +1,4 @@
-import { createClient } from '@vercel/kv';
-
-// Créer un client KV avec les variables STORAGE
-const kv = createClient({
-  url: process.env.STORAGE_URL,
-  token: process.env.STORAGE_REST_API_TOKEN,
-});
+import { kv } from '@vercel/kv';
 
 const PRODUCTS_KEY = 'glow_skin_products';
 
