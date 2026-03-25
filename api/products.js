@@ -1,4 +1,7 @@
-import { kv } from '@vercel/kv';
+import Redis from 'ioredis';
+
+// Créer une connexion Redis
+const redis = new Redis(process.env.REDIS_URL);
 
 const PRODUCTS_KEY = 'glow_skin_products';
 
@@ -17,29 +20,32 @@ const DEFAULT_PRODUCTS = [
   { id:11, name:'Liquid Matte Lipstick', brand:'Huda Beauty', price:89, cat:'makeup', badge:'', image:'skincare/655157815_1593449145099991_169289055395646886_n.jpg', desc:'Rouge à lèvres liquide mat longue tenue' },
 ];
 
-// Récupérer les produits depuis KV
+// Récupérer les produits depuis Redis
 async function getProducts() {
   try {
-    const products = await kv.get(PRODUCTS_KEY);
-    if (products && Array.isArray(products)) {
-      return products;
+    const data = await redis.get(PRODUCTS_KEY);
+    if (data) {
+      const products = JSON.parse(data);
+      if (Array.isArray(products)) {
+        return products;
+      }
     }
-    // Si pas de produits en KV, initialiser avec les produits par défaut
-    await kv.set(PRODUCTS_KEY, DEFAULT_PRODUCTS);
+    // Si pas de produits en Redis, initialiser avec les produits par défaut
+    await redis.set(PRODUCTS_KEY, JSON.stringify(DEFAULT_PRODUCTS));
     return DEFAULT_PRODUCTS;
   } catch (error) {
-    console.error('Error reading products from KV:', error);
+    console.error('Error reading products from Redis:', error);
     return DEFAULT_PRODUCTS;
   }
 }
 
-// Sauvegarder les produits dans KV
+// Sauvegarder les produits dans Redis
 async function saveProducts(products) {
   try {
-    await kv.set(PRODUCTS_KEY, products);
+    await redis.set(PRODUCTS_KEY, JSON.stringify(products));
     return true;
   } catch (error) {
-    console.error('Error saving products to KV:', error);
+    console.error('Error saving products to Redis:', error);
     return false;
   }
 }
