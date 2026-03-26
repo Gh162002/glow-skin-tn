@@ -173,6 +173,54 @@ nav {
   padding:0 5px;
 }
 
+/* Search Overlay */
+.search-overlay {
+  position:fixed;
+  top:0;
+  left:0;
+  right:0;
+  bottom:0;
+  background:rgba(0,0,0,.95);
+  z-index:9999;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  backdrop-filter:blur(10px);
+}
+.search-overlay.open {
+  display:flex;
+}
+.search-overlay-content {
+  position:relative;
+  width:90%;
+  max-width:600px;
+}
+.search-overlay input {
+  width:100%;
+  padding:1.5rem 4rem 1.5rem 2rem;
+  border:none;
+  border-radius:50px;
+  font-family:'Tajawal',sans-serif;
+  font-size:1.2rem;
+  background:white;
+  outline:none;
+}
+.search-close {
+  position:absolute;
+  right:1.5rem;
+  top:50%;
+  transform:translateY(-50%);
+  background:none;
+  border:none;
+  font-size:2rem;
+  color:var(--muted);
+  cursor:pointer;
+  transition:color .3s;
+}
+.search-close:hover {
+  color:var(--black);
+}
+
 /* ════════════════════════════════
    HERO
 ════════════════════════════════ */
@@ -258,6 +306,7 @@ nav {
    PRODUCTS SECTION
 ════════════════════════════════ */
 .products-section { background:var(--white); padding:5rem 3rem; }
+
 .filter-bar {
   display:flex; justify-content:center;
   gap:.8rem; margin-bottom:3.5rem; flex-wrap:wrap;
@@ -990,6 +1039,12 @@ tr:hover td{background:#fafafa;}
           <button onclick="changeLang('fr')">Français</button>
         </div>
       </div>
+      <a href="#" class="nav-icon" onclick="toggleSearchBar(event)" title="Rechercher">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"></circle>
+          <path d="m21 21-4.35-4.35"></path>
+        </svg>
+      </a>
       <a href="#" class="nav-icon" style="position:relative;" onclick="openCart(event)">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
@@ -1000,6 +1055,14 @@ tr:hover td{background:#fafafa;}
       </a>
     </div>
   </nav>
+
+  <!-- Search Bar Overlay -->
+  <div class="search-overlay" id="searchOverlay" onclick="closeSearchBar(event)">
+    <div class="search-overlay-content">
+      <input type="text" id="navSearchInput" placeholder="ابحثي عن منتج..." data-i18n-placeholder="search.placeholder" oninput="searchProducts()" autofocus>
+      <button class="search-close" onclick="closeSearchBar(event)">✕</button>
+    </div>
+  </div>
 
   <section class="hero">
     <div class="blob blob-pink"></div>
@@ -1463,6 +1526,96 @@ function filterCat(cat, btn){
   document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   renderSiteProducts();
+}
+
+// ─── SEARCH FUNCTIONS ────────────────────────────────────
+let currentSearchQuery = '';
+
+function toggleSearchBar(e){
+  if(e) e.preventDefault();
+  const overlay = document.getElementById('searchOverlay');
+  overlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+  setTimeout(() => {
+    document.getElementById('navSearchInput').focus();
+  }, 100);
+}
+
+function closeSearchBar(event){
+  if(event && event.target !== event.currentTarget && !event.target.classList.contains('search-close')) return;
+  const overlay = document.getElementById('searchOverlay');
+  overlay.classList.remove('open');
+  document.body.style.overflow = '';
+  currentSearchQuery = '';
+  document.getElementById('navSearchInput').value = '';
+  document.getElementById('searchInput').value = '';
+  renderSiteProducts();
+}
+
+async function searchProducts(){
+  const navInput = document.getElementById('navSearchInput');
+  const sectionInput = document.getElementById('searchInput');
+  
+  // Sync both search inputs
+  if(document.activeElement === navInput){
+    currentSearchQuery = navInput.value.toLowerCase();
+    sectionInput.value = navInput.value;
+  } else {
+    currentSearchQuery = sectionInput.value.toLowerCase();
+    navInput.value = sectionInput.value;
+  }
+
+  const grid = document.getElementById('productsGrid');
+  const products = await getProducts();
+  
+  // Filter by category first
+  let filtered = currentCat === 'all' ? products : products.filter(p => p.cat === currentCat);
+  
+  // Then filter by search query
+  if(currentSearchQuery.trim() !== ''){
+    filtered = filtered.filter(p => {
+      const nameAr = typeof p.name === 'object' ? p.name.ar : p.name;
+      const nameFr = typeof p.name === 'object' ? p.name.fr : p.name;
+      const descAr = typeof p.desc === 'object' ? p.desc.ar : p.desc;
+      const descFr = typeof p.desc === 'object' ? p.desc.fr : p.desc;
+      
+      return nameAr.toLowerCase().includes(currentSearchQuery) ||
+             nameFr.toLowerCase().includes(currentSearchQuery) ||
+             p.brand.toLowerCase().includes(currentSearchQuery) ||
+             (descAr && descAr.toLowerCase().includes(currentSearchQuery)) ||
+             (descFr && descFr.toLowerCase().includes(currentSearchQuery));
+    });
+  }
+
+  if(filtered.length === 0){
+    const emptyMsg = currentLang === 'ar' ? 'لا توجد نتائج للبحث' : 'Aucun résultat trouvé';
+    grid.innerHTML = `<div class="empty-products"><div class="empty-icon">🔍</div><p>${emptyMsg}</p></div>`;
+    return;
+  }
+
+  // Render filtered products
+  grid.innerHTML = filtered.map(p => {
+    const badgeMap = { new:'badge-new', hot:'badge-hot', sold:'badge-sold', promo:'badge-promo' };
+    const badgeHTML = p.badge ? `<span class="p-badge ${badgeMap[p.badge]||''}">${getBadgeLabel(p.badge)}</span>` : '';
+    const imgSrc = p.image || 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23f5f5f5" width="100" height="100"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%23999" font-size="14"%3ENo Image%3C/text%3E%3C/svg%3E';
+    
+    const productName = typeof p.name === 'object' ? p.name[currentLang] : p.name;
+    const productDesc = typeof p.desc === 'object' ? p.desc[currentLang] : p.desc;
+    
+    const descHTML = productDesc ? `<div class="product-desc">${productDesc}</div>` : '';
+    const priceLabel = currentLang === 'ar' ? 'من سعر' : 'À partir de';
+    return `
+    <div class="product-card" onclick="openProductModal(${p.id})">
+      <div class="product-img-wrap">
+        <img src="${imgSrc}" alt="${productName}" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22100%22%3E%3Crect fill=%22%23f5f5f5%22 width=%22100%22 height=%22100%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%23999%22 font-size=%2214%22%3ENo Image%3C/text%3E%3C/svg%3E'">
+        ${badgeHTML}
+      </div>
+      <div class="product-brand">${p.brand}</div>
+      <div class="product-name">${productName}</div>
+      ${descHTML}
+      <div class="product-price">${priceLabel} <strong>${p.price} ${getCurrency()}</strong></div>
+    </div>`;
+  }).join('');
 }
 
 function addToCartAnim(){
@@ -1997,6 +2150,9 @@ const translations = {
     'hero.subtitle': 'أسرار الجمال الكورية • تونس',
     'hero.cta': 'اكتشفي الآن',
     
+    // Search
+    'search.placeholder': 'ابحثي عن منتج...',
+    
     // Filters
     'filter.all': 'الجميع',
     'filter.skincare': 'عناية بالبشرة',
@@ -2085,6 +2241,9 @@ const translations = {
     'hero.title': 'GLOW SKIN',
     'hero.subtitle': 'Secrets de beauté coréens • Tunisie',
     'hero.cta': 'Découvrir maintenant',
+    
+    // Search
+    'search.placeholder': 'Rechercher un produit...',
     
     // Filters
     'filter.all': 'Tous',
