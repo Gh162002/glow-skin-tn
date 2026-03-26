@@ -1139,11 +1139,21 @@ tr:hover td{background:#fafafa;}
       <!-- Add / Edit form -->
       <div class="admin-card">
         <h2 id="formTitle">➕ إضافة منتج جديد</h2>
+        
+        <!-- Nom du produit (AR + FR) -->
         <div class="form-grid">
           <div class="admin-field">
-            <label>اسم المنتج *</label>
-            <input type="text" id="f-name" placeholder="مثال: AHA 30% Peeling Solution">
+            <label>اسم المنتج (عربي) *</label>
+            <input type="text" id="f-name-ar" placeholder="مثال: محلول تقشير AHA 30% + BHA 2%">
           </div>
+          <div class="admin-field">
+            <label>Nom du produit (Français) *</label>
+            <input type="text" id="f-name-fr" placeholder="Ex: AHA 30% + BHA 2% Peeling Solution">
+          </div>
+        </div>
+
+        <!-- Marque + Prix + Catégorie -->
+        <div class="form-grid">
           <div class="admin-field">
             <label>العلامة التجارية *</label>
             <input type="text" id="f-brand" placeholder="مثال: The Ordinary">
@@ -1152,6 +1162,9 @@ tr:hover td{background:#fafafa;}
             <label>السعر (دت) *</label>
             <input type="number" id="f-price" placeholder="59">
           </div>
+        </div>
+
+        <div class="form-grid">
           <div class="admin-field">
             <label>الفئة *</label>
             <select id="f-cat">
@@ -1171,10 +1184,16 @@ tr:hover td{background:#fafafa;}
             </select>
           </div>
         </div>
-        <div class="form-grid full">
+
+        <!-- Description (AR + FR) -->
+        <div class="form-grid">
           <div class="admin-field">
-            <label>وصف المنتج</label>
-            <textarea id="f-desc" placeholder="وصف قصير للمنتج..." style="min-height:60px;"></textarea>
+            <label>وصف المنتج (عربي)</label>
+            <textarea id="f-desc-ar" placeholder="وصف قصير للمنتج بالعربية..." style="min-height:80px;"></textarea>
+          </div>
+          <div class="admin-field">
+            <label>Description (Français)</label>
+            <textarea id="f-desc-fr" placeholder="Description courte du produit en français..." style="min-height:80px;"></textarea>
           </div>
         </div>
         <div class="admin-field" style="margin-top:1rem;">
@@ -1407,16 +1426,21 @@ async function renderSiteProducts(){
     const badgeMap = { new:'badge-new', hot:'badge-hot', sold:'badge-sold', promo:'badge-promo' };
     const badgeHTML = p.badge ? `<span class="p-badge ${badgeMap[p.badge]||''}">${getBadgeLabel(p.badge)}</span>` : '';
     const imgSrc = p.image || 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23f5f5f5" width="100" height="100"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%23999" font-size="14"%3ENo Image%3C/text%3E%3C/svg%3E';
-    const descHTML = p.desc ? `<div class="product-desc">${p.desc}</div>` : '';
+    
+    // Gérer les produits bilingues (nouveaux) et les anciens produits
+    const productName = typeof p.name === 'object' ? p.name[currentLang] : p.name;
+    const productDesc = typeof p.desc === 'object' ? p.desc[currentLang] : p.desc;
+    
+    const descHTML = productDesc ? `<div class="product-desc">${productDesc}</div>` : '';
     const priceLabel = currentLang === 'ar' ? 'من سعر' : 'À partir de';
     return `
     <div class="product-card" onclick="openProductModal(${p.id})">
       <div class="product-img-wrap">
-        <img src="${imgSrc}" alt="${p.name}" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22100%22%3E%3Crect fill=%22%23f5f5f5%22 width=%22100%22 height=%22100%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%23999%22 font-size=%2214%22%3ENo Image%3C/text%3E%3C/svg%3E'">
+        <img src="${imgSrc}" alt="${productName}" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22100%22%3E%3Crect fill=%22%23f5f5f5%22 width=%22100%22 height=%22100%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%23999%22 font-size=%2214%22%3ENo Image%3C/text%3E%3C/svg%3E'">
         ${badgeHTML}
       </div>
       <div class="product-brand">${p.brand}</div>
-      <div class="product-name">${p.name}</div>
+      <div class="product-name">${productName}</div>
       ${descHTML}
       <div class="product-price">${priceLabel} <strong>${p.price} ${getCurrency()}</strong></div>
     </div>`;
@@ -1425,8 +1449,12 @@ async function renderSiteProducts(){
   // Update contact select
   const sel = document.getElementById('contactProductSelect');
   if(sel) {
-    sel.innerHTML = '<option value="">اختاري المنتج</option>' +
-      products.map(p=>`<option>${p.brand} – ${p.name}</option>`).join('');
+    const selectLabel = currentLang === 'ar' ? 'اختاري المنتج' : 'Choisir un produit';
+    sel.innerHTML = `<option value="">${selectLabel}</option>` +
+      products.map(p=>{
+        const pName = typeof p.name === 'object' ? p.name[currentLang] : p.name;
+        return `<option>${p.brand} – ${pName}</option>`;
+      }).join('');
   }
 }
 
@@ -1491,21 +1519,23 @@ function renderCart(){
   
   const total = cart.reduce((sum, item) => sum + item.price, 0);
   
-  cartBody.innerHTML = cart.map((item, index) => `
+  cartBody.innerHTML = cart.map((item, index) => {
+    const itemName = typeof item.name === 'object' ? item.name[currentLang] : item.name;
+    return `
     <div class="cart-item">
       <div class="cart-item-img">
-        <img src="${item.image}" alt="${item.name}">
+        <img src="${item.image}" alt="${itemName}">
       </div>
       <div class="cart-item-details">
         <div>
           <div class="cart-item-brand">${item.brand}</div>
-          <div class="cart-item-name">${item.name}</div>
+          <div class="cart-item-name">${itemName}</div>
         </div>
         <div class="cart-item-price">${item.price} ${getCurrency()}</div>
       </div>
       <button class="cart-item-remove" onclick="removeFromCart(${index})" title="${t('cart.remove')}">🗑️</button>
     </div>
-  `).join('');
+  `}).join('');
   
   document.getElementById('cartTotalPrice').textContent = total + ' ' + getCurrency();
   cartFooter.style.display = 'block';
@@ -1526,7 +1556,8 @@ function checkoutCart(){
   let total = 0;
   
   cart.forEach((item, i) => {
-    message += `${i+1}. ${item.brand} - ${item.name}\n   ${t('whatsapp.price')} ${item.price} ${getCurrency()}\n\n`;
+    const itemName = typeof item.name === 'object' ? item.name[currentLang] : item.name;
+    message += `${i+1}. ${item.brand} - ${itemName}\n   ${t('whatsapp.price')} ${item.price} ${getCurrency()}\n\n`;
     total += item.price;
   });
   
@@ -1548,10 +1579,14 @@ async function openProductModal(productId){
   
   const badgeMap = { new:'badge-new', hot:'badge-hot', sold:'badge-sold', promo:'badge-promo' };
   
+  // Gérer les produits bilingues
+  const productName = typeof product.name === 'object' ? product.name[currentLang] : product.name;
+  const productDesc = typeof product.desc === 'object' ? product.desc[currentLang] : product.desc;
+  
   document.getElementById('pm-img').src = product.image || '';
   document.getElementById('pm-brand').textContent = product.brand;
-  document.getElementById('pm-title').textContent = product.name;
-  document.getElementById('pm-desc').textContent = product.desc || t('modal.defaultDesc');
+  document.getElementById('pm-title').textContent = productName;
+  document.getElementById('pm-desc').textContent = productDesc || t('modal.defaultDesc');
   document.getElementById('pm-price').textContent = product.price;
   
   const badgeEl = document.getElementById('pm-badge');
@@ -1581,7 +1616,8 @@ function addToCartFromModal(){
 
 function orderViaWhatsApp(){
   if(!currentProduct) return;
-  const message = `${t('whatsapp.singleProduct')}\n${currentProduct.brand} - ${currentProduct.name}\n${t('whatsapp.price')} ${currentProduct.price} ${getCurrency()}`;
+  const productName = typeof currentProduct.name === 'object' ? currentProduct.name[currentLang] : currentProduct.name;
+  const message = `${t('whatsapp.singleProduct')}\n${currentProduct.brand} - ${productName}\n${t('whatsapp.price')} ${currentProduct.price} ${getCurrency()}`;
   const whatsappUrl = `https://wa.me/21626207466?text=${encodeURIComponent(message)}`;
   window.open(whatsappUrl, '_blank');
 }
@@ -1716,10 +1752,11 @@ async function renderAdminTable(){
 
   tbody.innerHTML = products.map(p => {
     const imgSrc = p.image || 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="50" height="50"%3E%3Crect fill="%23f5f5f5" width="50" height="50"/%3E%3C/svg%3E';
+    const productName = typeof p.name === 'object' ? `${p.name.ar} / ${p.name.fr}` : p.name;
     return `
     <tr>
-      <td class="td-emoji"><img src="${imgSrc}" alt="${p.name}"></td>
-      <td><div class="td-name">${p.name}</div></td>
+      <td class="td-emoji"><img src="${imgSrc}" alt="${productName}"></td>
+      <td><div class="td-name">${productName}</div></td>
       <td><div class="td-brand">${p.brand}</div></td>
       <td class="td-price">${p.price} دت</td>
       <td><span class="td-cat">${catMap[p.cat]||p.cat}</span></td>
@@ -1735,21 +1772,31 @@ async function renderAdminTable(){
 
 // ─── SAVE PRODUCT ────────────────────────────────────────
 async function saveProduct(){
-  const name  = document.getElementById('f-name').value.trim();
+  const nameAr  = document.getElementById('f-name-ar').value.trim();
+  const nameFr  = document.getElementById('f-name-fr').value.trim();
   const brand = document.getElementById('f-brand').value.trim();
   const price = parseFloat(document.getElementById('f-price').value);
   const cat   = document.getElementById('f-cat').value;
   const badge = document.getElementById('f-badge').value;
-  const desc  = document.getElementById('f-desc').value.trim();
+  const descAr  = document.getElementById('f-desc-ar').value.trim();
+  const descFr  = document.getElementById('f-desc-fr').value.trim();
   const image = document.getElementById('f-imageData').value;
   const editId = document.getElementById('f-editId').value;
 
-  if(!name||!brand||!price){ showToast('⚠️ يرجى ملء جميع الحقول المطلوبة'); return; }
+  if(!nameAr||!nameFr||!brand||!price){ showToast('⚠️ يرجى ملء جميع الحقول المطلوبة'); return; }
   if(!image && !editId){ showToast('⚠️ يرجى اختيار صورة للمنتج'); return; }
 
   let result;
   let isNewProduct = !editId;
-  let productData = {name, brand, price, cat, badge, desc, image};
+  let productData = {
+    name: { ar: nameAr, fr: nameFr },
+    brand, 
+    price, 
+    cat, 
+    badge, 
+    desc: { ar: descAr, fr: descFr },
+    image
+  };
 
   if(editId){
     // Edit mode
@@ -1813,12 +1860,14 @@ function notifySubscribers(product){
 }
 
 function resetForm(){
-  document.getElementById('f-name').value  = '';
+  document.getElementById('f-name-ar').value  = '';
+  document.getElementById('f-name-fr').value  = '';
   document.getElementById('f-brand').value = '';
   document.getElementById('f-price').value = '';
   document.getElementById('f-cat').value   = 'skincare';
   document.getElementById('f-badge').value = '';
-  document.getElementById('f-desc').value  = '';
+  document.getElementById('f-desc-ar').value  = '';
+  document.getElementById('f-desc-fr').value  = '';
   document.getElementById('f-imageData').value = '';
   document.getElementById('f-image').value = '';
   document.getElementById('f-editId').value = '';
@@ -1835,12 +1884,29 @@ async function editProduct(id){
   const p = products.find(x=>x.id===id);
   if(!p) return;
 
-  document.getElementById('f-name').value  = p.name;
+  // Gérer les produits bilingues et les anciens produits
+  if(typeof p.name === 'object'){
+    document.getElementById('f-name-ar').value = p.name.ar || '';
+    document.getElementById('f-name-fr').value = p.name.fr || '';
+  } else {
+    // Ancien produit - mettre le nom dans les deux champs
+    document.getElementById('f-name-ar').value = p.name;
+    document.getElementById('f-name-fr').value = p.name;
+  }
+
+  if(typeof p.desc === 'object'){
+    document.getElementById('f-desc-ar').value = p.desc.ar || '';
+    document.getElementById('f-desc-fr').value = p.desc.fr || '';
+  } else {
+    // Ancien produit - mettre la description dans les deux champs
+    document.getElementById('f-desc-ar').value = p.desc || '';
+    document.getElementById('f-desc-fr').value = p.desc || '';
+  }
+
   document.getElementById('f-brand').value = p.brand;
   document.getElementById('f-price').value = p.price;
   document.getElementById('f-cat').value   = p.cat;
   document.getElementById('f-badge').value = p.badge||'';
-  document.getElementById('f-desc').value  = p.desc||'';
   document.getElementById('f-imageData').value = p.image||'';
   document.getElementById('f-editId').value = p.id;
 
